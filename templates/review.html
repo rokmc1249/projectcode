@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
+    <title>신김리 책방</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        font-family: "Gowun Dodum", sans-serif;
+      }
+
+      .mytitle {
+        width: 100%;
+        height: 250px;
+
+        background-image: linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.5),
+            rgba(0, 0, 0, 0.5)
+          ),
+          url("https://movie-phinf.pstatic.net/20210715_95/1626338192428gTnJl_JPEG/movie_image.jpg");
+        background-position: center;
+        background-size: cover;
+
+        color: white;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mytitle > button {
+        width: 200px;
+        height: 50px;
+
+        background-color: transparent;
+        color: white;
+
+        border-radius: 50px;
+        border: 1px solid white;
+
+        margin-top: 10px;
+      }
+
+      .mytitle > button:hover {
+        border: 2px solid white;
+      }
+
+      .description {
+        color: gray;
+      }
+
+      .mycards {
+        margin: 20px auto 0px auto;
+        width: 95%;
+        max-width: 1200px;
+      }
+
+      .mypost {
+        width: 95%;
+        max-width: 500px;
+        margin: 20px auto 0px auto;
+        padding: 20px;
+        box-shadow: 0px 0px 3px 0px gray;
+
+        display: none;
+      }
+
+      .mybtns {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        margin-top: 20px;
+      }
+
+      .mybtns > button {
+        margin-right: 10px;
+      }
+
+      /* 추가 */
+      .login {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+      }
+
+      .login > button {
+        margin-right: 10px;
+      }
+
+      .choice_review {
+  width: 100%;
+  max-width: 500px;
+  margin: 20px auto;
+  box-shadow: 0px 0px 3px 0px black;
+  padding: 5px;
+  display: flex;
+  flex-wrap: wrap; /* 내용이 너무 길 경우 다음 줄로 넘어가게 합니다 */
+}
+.image-box {
+  width: 100px;
+  height: 150px;
+  border: 1px solid black;
+  margin: 10px;
+  flex: 1; /* 비율을 유지하면서 상자 크기 조정 */
+}
+.review_box {
+  flex: 3; /* 비율을 유지하면서 상자 크기 조정 */
+  height: 150px;
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.myreview {
+  width: 100%;
+  max-width: 500px;
+  margin: 20px auto;
+  box-shadow: 0px 0px 3px 0px black;
+  padding: 5px;
+}
+.review_comment textarea {
+  width: 100%;
+  resize: none;
+}
+
+        #comment  {
+            width: 250px;
+            resize : none;
+        }
+
+        #review_title {
+          height: 30px;
+          width: 300px;
+        }
+
+        #review_author {
+          height: 30px;
+          width: 300px;
+        }
+
+        #review_description {
+          height: 30px;
+          width: 300px;
+          resize: none;
+        }
+
+    </style>
+    <script>
+      $(document).ready(function () {
+          document.getElementById("review_start").style.display = "none";
+          listing();
+          
+      });
+      
+      // 스토리지에 토큰이 있으면 nav바에 있는 값들을 바꿔줘요.
+      document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("token")) {
+          document.getElementById("account-create").innerHTML =
+            '<a class="nav-link" href="#" id="logout-link">로그아웃</a>';
+
+          document.getElementById("review_start").innerHTML =
+            '<a class="nav-link" href="/review_start">리뷰작성</a>';
+          document.getElementById("account-login").style.display = "none";
+        }
+      });
+
+
+      document.addEventListener("click", function (e) {
+        if (e.target.id === "logout-link") {
+          localStorage.removeItem("token");
+          alert("로그아웃 되었습니다!");
+          window.location.href = "/";
+        }
+      });
+
+
+        function save_review(token) {
+          var tokenHere = localStorage.getItem("token")
+
+            let review_title = $('#review_title').val()
+            let review_author = $('#review_author').val()
+            let comment = $('#comment').val()
+            let review_description = $('#review_description').val()
+            let star = $('#star').val()
+            let write_user = tokenHere
+
+            let formData = new FormData();
+            formData.append("review_title_give", review_title)
+            formData.append("review_author_give", review_author)
+            formData.append("comment_give", comment)
+            formData.append("review_description_give", review_description)
+            formData.append("star_give", star)
+            formData.append("write_user_give", write_user);
+            
+
+            fetch('/review', { method: "POST", body: formData, }).then((res) => res.json()).then((data) => {
+                alert(data["msg"]);
+                window.location.reload()
+            });
+
+            location.href = "/";  
+        }
+        
+
+         
+       
+       window.onload = function() {
+// 'cast' 키에서 로컬 스토리지의 데이터를 가져와서 파싱합니다.
+          var savedCast = JSON.parse(localStorage.getItem('cast'));
+          if (savedCast) {
+          // 이미지 주소를 설정합니다.
+          document.querySelector('.image-box img').src = savedCast.image;
+
+          // 리뷰 제목을 설정합니다.
+          document.getElementById('review_title').value = savedCast.title;
+
+          // 작가 이름을 설정합니다.
+          document.getElementById('review_author').value = savedCast.author;
+
+          // 설명을 설정합니다.
+          document.getElementById('review_description').value = savedCast.description;
+          }
+    };
+
+      
+          
+   
+
+
+
+    </script>
+  </head>
+
+  <body>
+    <!-- 네비게이션바 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">신김리 책방</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item" id="account-create">
+              <a class="nav-link" href="/register">계정생성</a>
+            </li>
+            <li class="nav-item" id="account-login">
+              <a class="nav-link" href="/login">로그인</a>
+            </li>
+            <li class="nav-item" id="review_start">
+                <a class="nav-link" href="/review_start">리뷰작성</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="mytitle">
+      <h1>신김리 책방</h1>
+      <button onclick="open_box1()">등록하기</button>
+      <button type="button" onclick="location.href='/review_start/api' ">검색하기</button> 
+    </div>
+    <div class="mypost" id="post-box-1">
+      <div class="form-floating mb-3">
+        <input
+          id="url"
+          type="email"
+          class="form-control"
+          placeholder="name@example.com"
+        />
+        <label>제목</label>
+      </div>
+      <div class="form-floating mb-3">
+        <input
+          id="url"
+          type="email"
+          class="form-control"
+          placeholder="name@example.com"
+        />
+        <label>작가</label>
+      </div>
+      <div class="form-floating">
+        <textarea
+          id="comments"
+          class="form-control"
+          placeholder="Leave a comment here"
+        ></textarea>
+        <label for="floatingTextarea2">설명</label>
+      </div>
+      <div class="mybtns">
+        <button onclick="posting()" type="button" class="btn btn-dark">
+          기록하기
+        </button>
+        <button
+          onclick="close_box1()"
+          type="button"
+          class="btn btn-outline-dark"
+        >
+          닫기
+        </button>
+      </div>
+    </div>
+    <div class="choice_review" id="review_choice">
+      <div class="image-box">
+          <img src="">
+      </div>
+      <div class="review_box">
+        <div>
+          <div>
+            <input class="form-control" type="text" id="review_title" name="review_title" required>
+          </div>
+          <div>
+            <input class="form-control" placeholder="작가 이름을 입력해주세요" type="text" id="review_author" name="review_author" required>
+          </div>
+          <div>
+            <textarea class="form-control" placeholder="내용을 입력해주세요" id="review_description" name="review_description" rows="5" required></textarea>
+          </div>
+        </div>
+    </div>
+  <div class="myreview">
+      <div class="review_score">
+          <div>
+              <select class="form-select" id="star">
+                  <option selected>-- 별점 선택하기 --</option>
+                  <option value="1">⭐</option>
+                  <option value="2">⭐⭐</option>
+                  <option value="3">⭐⭐⭐</option>
+                  <option value="4">⭐⭐⭐⭐</option>
+                  <option value="5">⭐⭐⭐⭐⭐</option>
+              </select>
+          </div>
+      </div>
+      <div class="review_comment">
+          <div>
+              <textarea class="form-control" placeholder="책리뷰를 입력해주세요" id="comment" style="width: 300px;"></textarea>
+          </div>
+      </div>
+      <button onclick="save_review()" type="button" class="btn btn-dark" style="position: relative; left: 200px;">
+          리뷰 남기기
+      </button>
+  </div>
+      </div>
+    </div> 
+  </body>
+</html>

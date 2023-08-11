@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
+    <title>신김리 책방</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        font-family: "Gowun Dodum", sans-serif;
+      }
+
+      .mytitle {
+        width: 100%;
+        height: 250px;
+
+        background-image: linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.5),
+            rgba(0, 0, 0, 0.5)
+          ),
+          url("https://movie-phinf.pstatic.net/20210715_95/1626338192428gTnJl_JPEG/movie_image.jpg");
+        background-position: center;
+        background-size: cover;
+
+        color: white;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+
+      .btn-create > button {
+        width: 200px;
+        height: 50px;
+
+        background-color: transparent;
+        color: white;
+
+        border-radius: 50px;
+        border: 1px solid white;
+
+        margin-top: 10px;
+      }
+
+      .mytitle > button:hover {
+        border: 2px solid white;
+      }
+
+      .description {
+        margin-right: 10px;
+      }
+
+      .btn-create > button:hover {
+        border: 2px solid white;
+      }
+
+      .comment {
+        color: gray;
+      }
+
+      .mycards {
+        margin: 20px auto 0px auto;
+        width: 95%;
+        max-width: 1200px;
+      }
+
+      .mypost {
+        width: 95%;
+        max-width: 500px;
+        margin: 20px auto 0px auto;
+        padding: 20px;
+        box-shadow: 0px 0px 3px 0px gray;
+
+        display: none;
+      }
+
+      .mybtns {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .mybtns > button {
+        margin-right: 10px;
+      }
+
+      /* 추가 */
+      .login {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+      }
+
+      .login > button {
+        margin-right: 10px;
+      }
+
+
+    </style>
+    <script>
+      $(document).ready(function () {
+        listing();
+      });
+
+      // 스토리지에 토큰이 있으면 nav바에 있는 값들을 바꿔줘요.
+      document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("token")) {
+          document.getElementById("account-create").innerHTML =
+            '<a class="nav-link" href="#" id="logout-link">로그아웃</a>';
+
+          document.getElementById("review_start").innerHTML =
+            '<a class="nav-link" href="/review_start">리뷰작성</a>';
+          document.getElementById("account-login").style.display = "none";
+        }
+      });
+
+      document.addEventListener("click", function (e) {
+        if (e.target.id === "logout-link") {
+          localStorage.removeItem("token");
+
+          alert("로그아웃 되었습니다!");
+          window.location.href = "/";
+        }
+      });
+
+      //* 전체 목록 조회
+      function listing() {
+        fetch("/api/reviews").then((res)=>res.json()).then((data)=>{
+          reviews = data['reviews'];
+          $('#cards-box').empty();
+          reviews.forEach((review)=>{
+                const id = review['_id'];
+                const title = review['title'];
+                const author = review['author'];
+                const description = review['description'];
+                const star = review['star'];
+                const star_repeat = '⭐'.repeat(star)
+                const comment = review['comment'];
+                const temp_html = `
+                <div class="col" id="${id}">
+                    <div class="card h-100">
+                        <img
+                        src="data:image/jpeg;base64,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"
+                        class="card-img-top"
+                        />
+                        <div class="card-body">
+                        <h5 class="card-title">${title}</h5>
+                        <p class="card-author">${author}</p>
+                        <p>${star_repeat}</p>
+                        <p class="description">${description}</p>
+                        <p class="comment">${comment}</p>
+                        </div>
+                        <button onclick="location.href = '/api/reviews/${id}'" type="button" class="btn btn-light">수정</button>
+                        <button onclick ="delete_review('${id}')" type="button" class="btn btn-light">삭제</button>
+                    </div>
+                </div>`
+                $('#cards-box').append(temp_html);
+          })
+        })
+      }
+
+      //* 리뷰 삭제(id값과 현재 사용자 토큰값 사용)
+      function delete_review(id){
+        if(confirm('삭제하시겠습니까?')){
+          //로그인 한 사람이면 실행
+          if(localStorage.getItem("token")){
+            let formData = new FormData();
+            formData.append("review_id", id);
+            
+            formData.append("review_token", localStorage.getItem("token"));
+            fetch('/api/reviews/delete', {method: "POST",body: formData,}).then((response) => response.json()).then((data) => {
+                msg = data['reviews']
+                alert(msg)
+                if(msg === "삭제 완료!"){
+                  window.location.reload();
+                }              
+            });
+          }
+        } else {//로그인 안 했을 때
+          alert('로그인 후 이용 가능합니다.')
+        }
+      }
+
+    </script>
+  </head>
+
+  <body>
+    <!-- 네비게이션바 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">신김리 책방</a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item" id="account-create">
+              <a class="nav-link" href="/register">계정생성</a>
+            </li>
+            <li class="nav-item" id="account-login">
+              <a class="nav-link" href="/login">로그인</a>
+            </li>
+            <li class="nav-item" id="review_start">
+              <a class="nav-link" href="/review_start">리뷰작성</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="mytitle">
+      <h1>신김리 책방</h1>
+    </div>
+    <div class="mycards">
+      <div class="row row-cols-1 row-cols-md-4 g-4" id="cards-box">
+      </div>
+    </div>
+  </body>
+</html>
+

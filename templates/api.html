@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+ 
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"
+    integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+
+    <script>
+      $(document).ready(function () {
+          var pageNum = 1;
+
+          //기존에 만든 뼈대 html제거
+          $('#total').empty();
+          
+          //버튼 클릭시
+          $("#search").click(function () {
+             
+              //kakao api 사용
+              $.ajax({
+                  method: "GET",
+                  url: "https://dapi.kakao.com/v3/search/book?target=title",
+                  data: { query: $("#query").val()},
+                  headers: {Authorization: "KakaoAK 94a41ab7f95a5cf8a012ef4094f41ace"} 
+
+              })
+             
+              .done(function (msg) {
+                 
+               
+                  for (var i = 0; i < 4; i++){ //4개까지만 책 목록 불러오기
+                    
+                      let title = msg.documents[i].title;
+                      let authors = msg.documents[i].authors[0];
+                      let contents = msg.documents[i].contents;
+                      let thumbnail = msg.documents[i].thumbnail; 
+                      
+                      //화면상에 책 목록 보여주기
+                      let temp_html=` <div class="custom">
+                                      <div class="card mb-3 customs-inner" >
+                                      <div class="row g-0">
+                                        <div class="col-md-4 ">
+                                          <div class="image-info">
+                                          <img src="${thumbnail}" class="img-fluid rounded-start" alt="...">
+                                        </div>
+                                        <div class="col-md-8 custom-col">
+                                          <div class="card-body">
+                                            <h5 class="card-title">제목 : <span>${title}</span></h5>
+                                              <p class="card-text">작가: <span>${authors}</span></p>
+                                              <p class="card-text2">소개: <span>${contents}</span></p>
+                                              <button onclick="posting(${i})"  type="button" class="btn btn-dark">기록하기</button>
+                                          </div> 
+                                        </div>
+                                      </div>
+                                      </div>
+                                      </div>
+                                    </div>`
+                                      $('#total').append(temp_html)
+                  }
+              });
+          })    
+      })
+
+      //DB로 넘기기위해 해당 인덱스별 title, authors,description의 값을 지정
+      function posting(index) {
+        var image = $('img.img-fluid.rounded-start').eq(index).attr('src');
+        var title = $('.card-title span').eq(index).text();
+        var author = $('.card-text span').eq(index).text();
+        var description = $('.card-text2 span').eq(index).text();
+        var comment = "미작성입니다.";
+        var star = 3;
+        var token = localStorage.getItem("token");
+
+
+        
+        
+        
+        let formData = new FormData();
+           formData.append("image_give",image);
+            formData.append("title_give",title);
+            formData.append("author_give",author);
+            formData.append("description_give",description);
+            formData.append("comment_give",comment);
+            formData.append("star_give",star);
+           formData.append("token_give",token);
+            
+           
+
+           fetch('/api', { method: "POST", body: formData }).then((res) => res.json()).then((data) => {
+               alert(data["msg"]);
+               window.location.reload()
+               window.location.href = 'http://localhost:5001/review_start';
+            });
+      }
+    </script>
+
+<style>
+  /* 가로 정렬 */
+  .top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+  }
+  
+  #query {
+      margin-right: 10px;
+  }
+  
+
+
+.customs-inner{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.row g-0{
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+
+  /* 추가 스타일링 */
+  .card {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 600px;
+  }
+  
+  .card-title {
+      font-size: 18px;
+      font-weight: bold;
+  }
+  .custom-coll
+  {
+  display: flex;
+  align-items: center;
+  }
+ 
+  
+  .card-text {
+      font-size: 16px;
+      margin-bottom: 5px;
+  }
+  
+  .card-text2 {
+      font-size: 14px;
+      color: #666;
+  }
+  
+  .btn-dark {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+  }
+  </style>
+    
+    <title>신김리 책방</title>
+</head>
+ 
+<body>
+  
+<form class="top">
+    <input type="text" id="query">
+    <button type="button" id="search">검색</button>
+</form>
+  
+
+    
+    <div class="total" id="total">
+      <div class="custom">
+        <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+          <div class="col-md-4">
+            <div class="image-info">
+            <img src="이미지" class="img-fluid rounded-start" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">제목: </h5>
+                <p class="card-text">작가: </p>
+                <p class="card-text2">소개: </p>
+                <button onclick="posting()" type="button" class="btn btn-dark">기록하기</button>
+            </div> 
+          </div>
+        </div>
+        </div>
+        </div>
+      </div>   
+     
+      <div class="custom">
+        <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+          <div class="col-md-4">
+            <div class="image-info">
+            <img src="이미지" class="img-fluid rounded-start" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">제목: </h5>
+                <p class="card-text">작가: </p>
+                <p class="card-text2">소개: </p>
+                <button onclick="posting()" type="button" class="btn btn-dark">기록하기</button>
+            </div> 
+          </div>
+        </div>
+        </div>
+        </div>
+      </div> 
+      <div class="custom">
+        <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+          <div class="col-md-4">
+            <div class="image-info">
+            <img src="이미지" class="img-fluid rounded-start" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">제목: </h5>
+                <p class="card-text">작가: </p>
+                <p class="card-text2">소개: </p>
+                <button onclick="posting()" type="button" class="btn btn-dark">기록하기</button>
+            </div> 
+          </div>
+        </div>
+        </div>
+        </div>
+      </div> 
+      <div class="custom">
+        <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+          <div class="col-md-4">
+            <div class="image-info">
+            <img src="이미지" class="img-fluid rounded-start" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">제목: </h5>
+                <p class="card-text">작가: </p>
+                <p class="card-text2">소개: </p>
+                <button onclick="posting()" type="button" class="btn btn-dark">기록하기</button>
+            </div> 
+          </div>
+        </div>
+        </div>
+        </div>
+      </div> 
+      <div class="custom">
+        <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+          <div class="col-md-4">
+            <div class="image-info">
+            <img src="이미지" class="img-fluid rounded-start" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">제목: </h5>
+                <p class="card-text">작가: </p>
+                <p class="card-text2">소개: </p>
+                <button onclick="posting()" type="button" class="btn btn-dark">기록하기</button>
+            </div> 
+          </div>
+        </div>
+        </div>
+        </div>
+      </div> 
+    </div>
+</body>
+ 
+</html>
